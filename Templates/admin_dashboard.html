@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - GenderWise</title>
+    <style>
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; display: flex; }
+        .sidebar { width: 220px; background-color: #2c3e50; color: white; height: 100vh; padding-top: 20px; position: fixed; }
+        .sidebar h2 { text-align: center; color: #ecf0f1; margin-bottom: 30px; font-weight: 600;}
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar ul li a {
+            display: block; padding: 12px 20px; color: #bdc3c7; text-decoration: none;
+            transition: background-color 0.3s, color 0.3s; border-left: 3px solid transparent;
+        }
+        .sidebar ul li a:hover, .sidebar ul li a.active {
+            background-color: #34495e; color: white; border-left-color: #3498db;
+        }
+        .main-content { margin-left: 220px; /* Same as sidebar width */ padding: 30px; width: calc(100% - 220px); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0; }
+        .header h1 { margin: 0; color: #2c3e50; font-weight: 600;}
+        .logout-btn {
+             background-color: #e74c3c; color: white; border: none; padding: 8px 15px;
+             border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; transition: background-color 0.3s;
+         }
+        .logout-btn:hover { background-color: #c0392b; }
+
+        .analytics-section { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .analytics-section h2 { margin-top: 0; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.4em;}
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-card { background-color: #ecf0f1; padding: 15px; border-radius: 5px; border-left: 4px solid #3498db; }
+        .stat-card h3 { margin: 0 0 8px 0; color: #2c3e50; font-size: 1em; font-weight: 500; }
+        .stat-card p { margin: 0; font-size: 1.6em; font-weight: 600; color: #34495e; }
+        .stat-card.messages { border-left-color: #2ecc71; }
+        .stat-card.docs { border-left-color: #f39c12; }
+        .stat-card.curated { border-left-color: #9b59b6; }
+        .error { color: #c0392b; font-weight: bold; }
+
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="{{ url_for('admin_dashboard') }}" class="active">Dashboard</a></li>
+            <li><a href="{{ url_for('admin_kb_list') }}">Knowledge Base</a></li>
+            <li><a href="{{ url_for('admin_curation_list') }}">Curation</a></li>
+            <!-- Add more links as needed -->
+        </ul>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <h1>Dashboard</h1>
+            <a href="{{ url_for('admin_logout') }}" class="logout-btn">Logout</a>
+        </div>
+
+        <div class="analytics-section">
+            <h2>Analytics Overview</h2>
+
+            {% if analytics.error %}
+                <p class="error">{{ analytics.error }}</p>
+            {% else %}
+                <div class="analytics-grid">
+                    <div class="stat-card users">
+                        <h3>Total Users</h3>
+                        <p>{{ analytics.total_users | default('N/A') }}</p>
+                    </div>
+                    <div class="stat-card messages">
+                        <h3>Total Messages</h3>
+                        <p>{{ analytics.total_messages | default('N/A') }}</p>
+                    </div>
+                    <div class="stat-card messages">
+                        <h3>Messages Today</h3>
+                        <p>{{ analytics.messages_today | default('N/A') }}</p>
+                    </div>
+                     <div class="stat-card convos">
+                        <h3>Total Conversations</h3>
+                        <p>{{ analytics.total_conversations | default('N/A') }}</p>
+                    </div>
+                     <div class="stat-card convos">
+                        <h3>Active Conversations</h3>
+                        <p>{{ analytics.active_conversations | default('N/A') }}</p>
+                    </div>
+                    <div class="stat-card docs">
+                        <h3>Uploaded Docs (Tracked)</h3>
+                        <p>{{ analytics.uploaded_docs | default('N/A') }}</p>
+                    </div>
+                    <div class="stat-card curated">
+                        <h3>Total Curated Responses</h3>
+                        <p>{{ analytics.total_curated | default('N/A') }}</p>
+                    </div>
+                    <div class="stat-card curated">
+                        <h3>Active Curated Responses</h3>
+                        <p>{{ analytics.active_curated | default('N/A') }}</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Add more dashboard widgets or sections here -->
+
+    </div>
+</body>
+</html>

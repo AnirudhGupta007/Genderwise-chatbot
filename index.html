@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenderWise India | iTech Mission</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base Styles --- */
+        :root {
+            --indian-saffron: #FF9933; --indian-white: #FFFFFF; --indian-green: #138808;
+            --indian-blue: #000080; --accent-gold: #D4AF37; --peacock-blue: #0C6170;
+            --henna-red: #A52A2A; --turmeric-yellow: #FFC30B; --light-cream: #FFF8E7;
+            --light-henna: #FFEBE3;
+        }
+        body{
+            font-family:'Poppins',Arial,sans-serif;
+            margin:0; padding: 0;
+            background-color:var(--light-cream);
+            background-image:url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 50m-40 0a40 40 0 1 0 80 0a40 40 0 1 0 -80 0" stroke="%23D4AF37" stroke-width="0.5" fill="none" opacity="0.2"/></svg>');
+            background-size:60px 60px;
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- Main App Layout --- */
+        #app-container {
+            display: flex; height: calc(100vh - 40px); max-height: 900px;
+            width: 95%; max-width: 1200px; margin: 20px auto;
+            background-color: white; border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(212,175,55,0.3); overflow: hidden; position: relative;
+        }
+        #app-container::before{
+            content:''; position:absolute; top:0; left:0; right:0; height:6px;
+            background:linear-gradient(to right,var(--indian-saffron),var(--indian-white),var(--indian-green));
+        }
+
+        /* --- Sidebar Styles --- */
+        #sidebar {
+            width: 260px; background-color: #f4f4f8; border-right: 1px solid #e0e0e0;
+            display: flex; flex-direction: column; padding-top: 6px; overflow: hidden; flex-shrink: 0;
+        }
+        #sidebar-controls { padding: 15px; border-bottom: 1px solid #e0e0e0; }
+        /* Language selector group removed */
+        .new-chat-btn {
+             background-color: var(--peacock-blue); color: white; border: none; cursor: pointer;
+             height: auto; font-size: 14px; padding: 10px 15px; border-radius: 8px;
+             font-family:'Poppins',Arial,sans-serif; font-weight:500; width: 100%;
+             text-align: center; transition: background-color 0.3s;
+        }
+        .new-chat-btn:hover:not(:disabled){ background-color:var(--indian-blue); }
+        #conversation-list-container { flex-grow: 1; overflow-y: auto; padding: 10px 0; }
+        #conversation-list { list-style: none; padding: 0; margin: 0; }
+        .conversation-item {
+            padding: 12px 15px; padding-right: 35px; /* Space for delete button */
+            cursor: pointer; border-bottom: 1px solid #e8e8e8;
+            font-size: 14px; color: #333; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; transition: background-color 0.2s; position: relative;
+            display: flex; /* Use flex to align title and button */
+            justify-content: space-between; /* Push title and button apart */
+            align-items: center; /* Vertically align */
+        }
+        .conversation-item-title {
+            flex-grow: 1; /* Allow title to take available space */
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; /* Keep title ellipsis */
+            margin-right: 10px; /* Space between title and button */
+        }
+        .delete-conv-btn {
+            background: none; border: none; font-size: 16px; color: #999;
+            cursor: pointer; padding: 0 5px; line-height: 1;
+            opacity: 0.7; transition: opacity 0.2s, color 0.2s;
+            flex-shrink: 0; /* Prevent button from shrinking */
+            display: none; /* Hide by default */
+        }
+        .conversation-item:hover .delete-conv-btn { display: inline-block; } /* Show on hover */
+        .delete-conv-btn:hover { color: var(--henna-red); opacity: 1; }
+        .conversation-item:last-child { border-bottom: none; }
+        .conversation-item:hover { background-color: #e9e9f0; }
+        .conversation-item.active {
+            background-color: var(--light-henna); font-weight: 600; color: var(--henna-red);
+        }
+        .conversation-item.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 4px; background-color: var(--henna-red);
+        }
+
+        /* --- Main Content Area --- */
+        #main-chat-area {
+            flex-grow: 1; display: flex; flex-direction: column;
+            height: 100%; overflow: hidden; padding-top: 6px;
+        }
+        .header { display:flex;align-items:center;justify-content:center;margin-bottom:10px; padding: 10px 20px; flex-shrink: 0; }
+        .logo{margin-right:15px;}
+        .chakra{width:60px;height:60px;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="none" stroke="%23000080" stroke-width="2"/><circle cx="50" cy="50" r="42" fill="none" stroke="%23000080" stroke-width="2"/><circle cx="50" cy="50" r="3" fill="%23000080"/><g stroke="%23000080" stroke-width="2"><path d="M50 5V95M5 50H95M26 26L74 74M26 74L74 26"/><path d="M14 50L86 50" transform="rotate(22.5 50 50)"/><path d="M14 50L86 50" transform="rotate(45 50 50)"/><path d="M14 50L86 50" transform="rotate(67.5 50 50)"/><path d="M14 50L86 50" transform="rotate(112.5 50 50)"/><path d="M14 50L86 50" transform="rotate(135 50 50)"/><path d="M14 50L86 50" transform="rotate(157.5 50 50)"/></g></svg>');background-repeat:no-repeat;background-position:center;}
+        h1{color:var(--indian-blue);text-align:center;margin:0;padding:10px 0;font-weight:600;position:relative;}
+        h1::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80px;height:4px;background:linear-gradient(to right,var(--indian-saffron),var(--indian-green));border-radius:2px;}
+
+        #user-info {
+             text-align: right; padding: 8px 15px; font-size: 14px; color: #333;
+             margin: 0 20px 10px 20px; border-bottom: 1px solid #eee;
+             background-color: #f9f9f9; border-radius: 5px; flex-shrink: 0;
+        }
+        #user-info span { margin-right: 15px; font-weight: 500; }
+        #user-info button {
+            font-size: 12px; padding: 5px 10px; height: auto; background-color: var(--henna-red);
+            border-radius: 5px; margin-left: 10px; vertical-align: middle; color: white;
+            border: none; cursor: pointer; transition: background-color 0.3s;
+         }
+         #user-info button:hover:not(:disabled) { background-color: #8B0000; }
+
+        .main-container {
+            background-color: transparent; border-radius: 0; padding: 0 20px 20px 20px;
+            box-shadow: none; border: none; position: static; overflow: hidden;
+            flex-grow: 1; display: flex; flex-direction: column; height: auto; min-height: 0;
+        }
+        .main-container::before { display: none; }
+
+        .chat-container{
+            height: auto; flex-grow: 1; min-height: 100px; overflow-y:auto;
+            padding:15px; margin-bottom:15px; border:1px solid #e0e0e0; border-radius:10px;
+            background-color:var(--light-cream);
+            background-image:url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M0,10 C5,8 5,12 10,10 C15,8 15,12 20,10 C20,15 15,20 10,20 C5,20 0,15 0,10 Z" fill="%23D4AF37" opacity="0.03"/></svg>');
+            background-size:40px 40px;
+        }
+        .message{margin-bottom:15px;padding:12px 15px;border-radius:18px;max-width:80%;position:relative;line-height:1.5;box-shadow:0 1px 3px rgba(0,0,0,0.1); word-wrap: break-word;}
+        .user-message{background-color:#e3f2fd;margin-left:auto;text-align:left;border-bottom-right-radius:4px;border-left:3px solid var(--indian-saffron);}
+        .bot-message{background-color:#f5f5f5;margin-right:auto;border-bottom-left-radius:4px;border-right:3px solid var(--indian-green);}
+        .system-message{background-color:#e1f5fe;margin: 5px auto; width: fit-content; max-width: 90%; font-style:italic;color:#555;border-left:3px solid var(--peacock-blue); font-size: 0.9em; padding: 8px 12px; text-align: center; border-radius: 8px; }
+        .message strong { font-weight: 600; }
+        .bot-message strong { color: var(--peacock-blue); }
+        .user-message strong { color: var(--indian-blue); }
+        .bot-message-content { display: inline; }
+
+        /* --- Sources Styles --- */
+        .sources {
+            font-size: 0.85em; margin-top: 10px; padding-top: 8px; padding-left: 0;
+            color: #444; border-top: 1px dashed var(--accent-gold);
+        }
+        .sources details { cursor: pointer; margin-top: 5px; }
+        .sources summary {
+             font-weight: 600; color: var(--peacock-blue); display: inline-block; padding: 2px 5px;
+             border-radius: 4px; background-color: #e0f7fa; transition: background-color 0.2s;
+        }
+        .sources summary:hover { background-color: #b2ebf2; }
+        .sources summary::marker { content: "▶ "; font-size: 0.8em;}
+        .sources details[open] summary::marker { content: "▼ "; }
+        .source-item { margin-top: 8px; padding-left: 15px; border-left: 2px solid #eee; }
+        .source-item p { margin: 2px 0; }
+        .source-item strong { color: #333; }
+        .source-content {
+            font-style: italic; background-color: #f9f9f9; padding: 6px 8px; border-radius: 4px;
+            margin-top: 4px; max-height: 100px; overflow-y: auto; font-size: 0.95em; border: 1px solid #eee;
+        }
+
+        .input-area {
+             display: flex; flex-direction: column; gap: 10px; margin-bottom: 0;
+             padding-top: 10px; border-top: 1px solid #eee; flex-shrink: 0;
+        }
+        .input-row { display: flex; gap: 10px; align-items: stretch;}
+        .input-group{display:flex; flex-grow: 1; position:relative;}
+        #question{
+            flex-grow:1;padding:14px;padding-left:45px;border:2px solid #e0e0e0;border-radius:25px;
+            font-size:16px;font-family:'Poppins',Arial,sans-serif;background-color:#fff;transition:border-color 0.3s;
+        }
+        #question:focus{outline:none;border-color:var(--peacock-blue);}
+        .input-group::before{content:'💬'; position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--indian-blue);z-index:1;}
+        #send-button {
+            padding:12px 25px;background-color:var(--peacock-blue);color:white;border:none;border-radius:25px;
+            cursor:pointer;font-size:16px;font-family:'Poppins',Arial,sans-serif;font-weight:500;
+            transition:background-color 0.3s,transform 0.2s; height: auto;
+        }
+        #send-button:hover:not(:disabled){background-color:var(--indian-blue);transform:translateY(-2px);}
+        #send-button:active:not(:disabled){transform:translateY(0);}
+        #send-button:disabled { background-color: #cccccc; cursor: not-allowed; transform: none; }
+
+        /* Upload section removed */
+
+        .info-text{text-align:center;color:#555;font-size:14px;margin-top:20px;position:relative;padding-top:15px; flex-shrink: 0;}
+        .info-text::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:1px;background:linear-gradient(to right,transparent,var(--accent-gold),transparent);}
+        .footer{text-align:center;color:#666;font-size:12px; padding: 10px 20px; flex-shrink: 0; border-top: 1px solid #eee; margin-top: 10px;}
+        .tricolor-footer{height:6px; border-radius:3px;overflow:hidden;display:flex; flex-shrink: 0;}
+        .tricolor-footer div{height:100%;flex:1;}
+        .saffron{background-color:var(--indian-saffron);}
+        .white{background-color:var(--indian-white);}
+        .green{background-color:var(--indian-green);}
+
+        /* --- Authentication Styles --- */
+        .hidden { display: none !important; }
+        #auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 248, 231, 0.98); /* Use theme background */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; backdrop-filter: blur(3px);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .auth-container {
+            background-color: white; padding: 30px 40px; border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15); border: 1px solid rgba(212,175,55,0.4);
+            width: 90%; max-width: 400px; text-align: center;
+        }
+         .auth-container h2 { color: var(--indian-blue); margin-bottom: 25px; }
+        .auth-form input {
+            display: block; width: calc(100% - 22px); padding: 12px 10px;
+            margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px;
+            font-size: 16px; font-family:'Poppins',Arial,sans-serif;
+        }
+        .google-login-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: calc(100% - 20px); padding: 10px; margin-top: 5px; margin-bottom: 15px;
+            background-color: #fff; color: #444; border: 1px solid #ccc; border-radius: 8px;
+            cursor: pointer; font-size: 15px; font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 500; transition: background-color 0.3s, border-color 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .google-login-btn:hover { background-color: #f8f8f8; border-color: #aaa; }
+        .google-login-btn img { margin-right: 10px; }
+         .auth-form button { width: 100%; margin-top: 10px; height: 45px; background-color: var(--peacock-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-family:'Poppins',Arial,sans-serif; font-weight:500; transition: background-color 0.3s; }
+         .auth-form button:hover:not(:disabled) { background-color: var(--indian-blue); }
+         .auth-form button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .auth-switch-link { display: block; margin-top: 20px; color: var(--peacock-blue); text-decoration: none; font-size: 14px; cursor: pointer; }
+        .auth-switch-link:hover { text-decoration: underline; }
+        .error-message { color: var(--henna-red); font-size: 14px; margin-top: -5px; margin-bottom: 10px; min-height: 1.2em; text-align: left;}
+
+    </style>
+</head>
+<body>
+    <!-- == Authentication Overlay == -->
+    <div id="auth-overlay">
+        <div class="auth-container">
+            <!-- Login Form -->
+            <div id="login-form-container">
+                <h2>Login to GenderWise</h2>
+                <form class="auth-form" id="login-form-element" onsubmit="handleLogin(event)">
+                    <input type="email" id="login-email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                    <button type="submit" id="login-button">Login</button>
+                    <p class="error-message" id="login-error"></p>
+                </form>
+
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 10px; color: #555;">OR</div>
+                <button type="button" class="google-login-btn" onclick="redirectToGoogle()">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" width="20" height="20">
+                    Login with Google
+                </button>
+
+                <a class="auth-switch-link" onclick="showAuthForm('register')">Need an account? Register</a>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form-container" class="hidden">
+                <h2>Register for GenderWise</h2>
+                <form class="auth-form" id="register-form-element" onsubmit="handleRegister(event)">
+                    <input type="text" id="register-name" placeholder="Name (Optional)" autocomplete="name">
+                    <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="register-password" placeholder="Password (min 8 chars)" required minlength="8" autocomplete="new-password">
+                    <button type="submit" id="register-button">Register</button>
+                    <p class="error-message" id="register-error"></p>
+                </form>
+                 <a class="auth-switch-link" onclick="showAuthForm('login')">Already have an account? Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- == Main App Container (Initially Hidden) == -->
+    <div id="app-container" class="hidden">
+
+        <!-- == Sidebar == -->
+        <div id="sidebar">
+            <div id="sidebar-controls">
+                 <!-- Language selector removed -->
+                <button class="new-chat-btn" onclick="startNewConversation()" title="Start a New Chat">New Chat</button>
+            </div>
+            <div id="conversation-list-container">
+                <ul id="conversation-list">
+                    <!-- Conversation items will be added here by JS -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- == Main Chat Area == -->
+        <div id="main-chat-area">
+            <div class="header"> <div class="logo chakra"></div> <h1>GenderWise India</h1> </div>
+            <div id="user-info" class="hidden"> <span id="user-email-display"></span> <button onclick="handleLogout()">Logout</button> </div>
+
+            <div class="main-container">
+                <div class="chat-container" id="chat-area">
+                    <!-- Chat messages appear here -->
+                </div>
+                <div class="input-area">
+                    <div class="input-row">
+                        <div class="input-group">
+                             <input type="text" id="question" placeholder="Ask a question..." onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
+                        </div>
+                        <button id="send-button" onclick="sendMessage()" title="Send Message">Send</button>
+                    </div>
+                </div>
+                 <!-- Upload Section Removed -->
+                 <p class="info-text">Your trusted source for information on gender equality...</p>
+                 <div class="footer">© 2025 iTech Mission | Empowering Through Knowledge</div>
+                 <div class="tricolor-footer"><div class="saffron"></div><div class="white"></div><div class="green"></div></div>
+            </div>
+        </div>
+
+    </div> <!-- End #app-container -->
+
+
+    <script>
+        // --- Configuration ---
+        const BACKEND_URL = window.location.origin;
+        const AUTH_TOKEN_KEY = 'genderwise_auth_token';
+        const CONVERSATION_ID_KEY = 'genderwise_conversation_id';
+        const WS_RECONNECT_TIMEOUT = 5000; // ms
+
+        // --- State Variables ---
+        let currentConversationId = localStorage.getItem(CONVERSATION_ID_KEY);
+        let authToken = null; // Initialized as null, set in checkLoginStatus
+        let currentUserEmail = null;
+        let ws = null;
+        let currentBotMessageElement = null;
+        let currentBotMessageId = null;
+        let connectingMsgId = null;
+        let reconnectAttempt = 0;
+        let reconnectTimer = null;
+
+        // --- DOM Elements ---
+        const chatArea = document.getElementById('chat-area');
+        const questionInput = document.getElementById('question');
+        // const languageSelect = document.getElementById('language-select'); // Removed
+        const sendButton = document.getElementById('send-button');
+        // Upload elements removed
+        const authOverlay = document.getElementById('auth-overlay');
+        const appContainer = document.getElementById('app-container');
+        const loginFormContainer = document.getElementById('login-form-container');
+        const registerFormContainer = document.getElementById('register-form-container');
+        const loginError = document.getElementById('login-error');
+        const registerError = document.getElementById('register-error');
+        const userInfo = document.getElementById('user-info');
+        const userEmailDisplay = document.getElementById('user-email-display');
+        const conversationList = document.getElementById('conversation-list');
+
+
+        // --- Utility Functions ---
+        const escapeHtml = (unsafe) => {
+            if (typeof unsafe !== 'string') return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return unsafe.replace(/[&<>"']/g, m => map[m]);
+        };
+
+        function scrollToBottom(behavior = 'smooth') { chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: behavior }); }
+        function setSendButtonState(enabled) { sendButton.disabled = !enabled; }
+        function setAuthButtonsState(formElementId, enabled, buttonText = null) {
+            const formElement = document.getElementById(formElementId);
+            if (!formElement) return;
+            const button = formElement.querySelector('button[type="submit"]');
+            if (button) {
+                button.disabled = !enabled;
+                if (buttonText) button.textContent = buttonText;
+            }
+        }
+
+        // --- UI Control ---
+        function showAuthForm(formType = 'login') {
+            authOverlay.classList.remove('hidden');
+            appContainer.classList.add('hidden');
+            userInfo.classList.add('hidden');
+            if (formType === 'login') {
+                loginFormContainer.classList.remove('hidden');
+                registerFormContainer.classList.add('hidden');
+                loginError.textContent = '';
+                document.getElementById('login-email').focus();
+            } else {
+                loginFormContainer.classList.add('hidden');
+                registerFormContainer.classList.remove('hidden');
+                registerError.textContent = '';
+                document.getElementById('register-email').focus();
+            }
+        }
+
+        function showChatInterface(userEmail) {
+            console.log("Showing chat interface for", userEmail);
+            authOverlay.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+            userInfo.classList.remove('hidden');
+            userEmailDisplay.textContent = `Logged in as: ${escapeHtml(userEmail)}`;
+            currentUserEmail = userEmail;
+            questionInput.focus();
+        }
+
+        // --- Message Display ---
+        function renderSources(sourcesArray) {
+            if (!sourcesArray || sourcesArray.length === 0) return '';
+            let sourcesHtml = `<details><summary>Sources (${sourcesArray.length})</summary>`;
+            sourcesArray.forEach((source, index) => {
+                 // Modify how source name is displayed
+                 let sourceDisplay = escapeHtml(source.source || 'Unknown Source');
+                 // Basic check for numeric/UUID-like PDF names (customize regex if needed)
+                 if (sourceDisplay.toLowerCase().endsWith('.pdf') && /^[a-fA-F0-9-]+(\.pdf)$/i.test(sourceDisplay)) {
+                     sourceDisplay = `Document Chunk`; // Use generic name
+                 }
+
+                 const pageContentPreview = source.page_content_preview ? escapeHtml(source.page_content_preview) : 'No preview available.';
+                 const contentHash = source.content_hash ? ` (ID: ${source.content_hash.substring(0, 8)}...)` : ''; // Show partial hash?
+
+                 sourcesHtml += `<div class="source-item">`;
+                 // Display modified source name and preview
+                 sourcesHtml += `<p><strong>${index + 1}. ${sourceDisplay}${contentHash}</strong></p>`;
+                 sourcesHtml += `<div class="source-content">${pageContentPreview}</div>`;
+                 sourcesHtml += `</div>`;
+             });
+             sourcesHtml += '</details>';
+             return sourcesHtml;
+        }
+
+        function addMessage(text, type, metadata = null, idToUseForNewElement = null) { // Renamed for clarity
+            -
+                console.log(`[DEBUG START addMessage] Called. type: ${type}, idToUseForNewElement (passed from caller): '${idToUseForNewElement}'`);
+
+                // If idToUseForNewElement is provided (from appendTokenToBotMessage for bot messages), USE IT.
+                // Otherwise (for user messages or system messages), generate a new random ID.
+                const finalElementId = idToUseForNewElement || `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+                // --- ADDED DEBUG LOG ---
+                console.log(`[DEBUG addMessage] Final ID that WILL BE SET on the new HTML div: '${finalElementId}'`);
+
+                const messageDiv = document.createElement("div");
+                messageDiv.id = finalElementId; // Set the ID on the HTML element
+                const formattedText = escapeHtml(text).replace(/\n/g, '<br>');
+                let contentHtml = '';
+                if (type === 'user') {
+                    messageDiv.className = 'message user-message';
+                    contentHtml = `<div><strong>You:</strong><br>${formattedText}</div>`;
+                } else if (type === 'bot') {
+                    messageDiv.className = 'message bot-message';
+                    // The contentSpan will be filled by appendTokenToBotMessage
+                    contentHtml = `<div><strong>GenderWise:</strong><br><span class="bot-message-content"></span></div>`;
+                    if (metadata !== false) { // metadata === true means it's a placeholder for streaming
+                        contentHtml += '<div class="sources-placeholder" style="display: none;"></div>';
+                    }
+                } else { // System message
+                    messageDiv.className = 'message system-message';
+                    contentHtml = formattedText;
+                }
+                messageDiv.innerHTML = contentHtml;
+                chatArea.appendChild(messageDiv);
+                if (type === 'user' || type === 'system') { scrollToBottom(); }
+
+                // --- ADDED DEBUG LOG ---
+                console.log(`[DEBUG END addMessage] Created and appended div with ID: '${finalElementId}'. Returning this ID.`);
+                return finalElementId; // Return the ID that was ACTUALLY set on the div
+            }
+        function showConnectingMessage() { if (!connectingMsgId || !document.getElementById(connectingMsgId)) { connectingMsgId = addMessage("Connecting to real-time server...", 'system', false); } }
+        function removeConnectingMessage() { if (connectingMsgId) { const el = document.getElementById(connectingMsgId); if (el) el.remove(); connectingMsgId = null; } }
+
+        // --- Authentication Logic ---
+        async function fetchWithAuth(url, options = {}) {
+             const token = localStorage.getItem(AUTH_TOKEN_KEY);
+             const headers = { ...(options.headers || {}) };
+             if (!(options.body instanceof FormData)) { headers['Content-Type'] = 'application/json'; }
+             if (token) { headers['Authorization'] = `Bearer ${token}`; }
+             try {
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) {
+                    console.warn("Received 401 Unauthorized. Logging out.");
+                    handleLogout(); // Automatically log out on 401
+                    throw new Error("Unauthorized - Please login again.");
+                }
+                return response;
+             } catch (error) {
+                 console.error("Fetch error:", error.message);
+                 if (!(error.message && error.message.startsWith("Unauthorized"))) {
+                    addMessage("Network error or server unavailable. Please check connection.", 'system', false);
+                 }
+                 throw error; // Re-throw to be caught by calling function
+             }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            loginError.textContent = '';
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            setAuthButtonsState('login-form-element', false, 'Logging in...');
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded'}, body: formData });
+                const data = await response.json();
+                if (!response.ok) { throw new Error(data.detail || `Login failed (${response.status})`); }
+                localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+                await checkLoginStatus(); // Re-run checkLoginStatus to load everything
+            } catch (error) { console.error("Login failed:", error); loginError.textContent = error.message;
+            } finally { setAuthButtonsState('login-form-element', true, 'Login'); }
+        }
+
+        async function handleRegister(event) {
+             event.preventDefault();
+             registerError.textContent = '';
+             const email = document.getElementById('register-email').value;
+             const password = document.getElementById('register-password').value;
+             const name = document.getElementById('register-name').value;
+             setAuthButtonsState('register-form-element', false, 'Registering...');
+             try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json'}, body: JSON.stringify({ email, password, name: name || null }) });
+                const data = await response.json();
+                 if (!response.ok) {
+                     const errorDetail = data.detail || `Registration failed (${response.status})`;
+                     if (Array.isArray(data.detail) && data.detail[0]?.msg) { throw new Error(data.detail[0].msg); }
+                     else if (typeof data.detail === 'string') { throw new Error(data.detail); }
+                     throw new Error(errorDetail);
+                 }
+                 showAuthForm('login');
+                 document.getElementById('login-email').value = email;
+                 alert("Registration successful! Please log in.");
+             } catch (error) { console.error("Registration failed:", error); registerError.textContent = error.message;
+             } finally { setAuthButtonsState('register-form-element', true, 'Register'); }
+        }
+
+        function handleLogout() {
+            console.log("Logging out...");
+            const token = localStorage.getItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(CONVERSATION_ID_KEY);
+            authToken = null; currentUserEmail = null; currentConversationId = null;
+            if (ws) { ws.close(1000, "User logged out"); ws = null; }
+            if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+            chatArea.innerHTML = ''; conversationList.innerHTML = '';
+            showAuthForm('login'); userInfo.classList.add('hidden');
+            if (token) { fetch(`${BACKEND_URL}/api/auth/logout`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(err => console.warn("Logout API call failed:", err)); }
+        }
+
+        // --- Sidebar & History Logic ---
+        async function loadSidebarConversations() {
+            console.log("Loading sidebar conversations...");
+            if (!authToken) { console.warn("Cannot load sidebar: Not authenticated."); return; }
+            try {
+                const response = await fetchWithAuth(`${BACKEND_URL}/api/conversations`);
+                if (!response.ok) { throw new Error(`Failed to load conversations (${response.status})`); }
+                const conversations = await response.json();
+                conversationList.innerHTML = ''; // Clear previous list
+                if (!conversations || conversations.length === 0) return;
+
+                conversations.forEach(conv => {
+                    const li = document.createElement('li');
+                    li.className = 'conversation-item';
+                    li.dataset.convId = conv.id;
+
+                    // Add title span
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'conversation-item-title';
+                    titleSpan.textContent = escapeHtml(conv.title || 'Untitled Chat');
+                    titleSpan.title = escapeHtml(conv.title || 'Untitled Chat'); // Tooltip for full title
+                    li.appendChild(titleSpan);
+
+                    // Add delete button
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-conv-btn';
+                    deleteBtn.innerHTML = '&#x1F5D1;'; // Trash can icon
+                    deleteBtn.title = 'Delete Conversation';
+                    deleteBtn.onclick = (event) => {
+                        event.stopPropagation(); // Prevent triggering conversation switch
+                        handleDeleteConversation(conv.id, li);
+                    };
+                    li.appendChild(deleteBtn);
+
+                    if (conv.id === currentConversationId) { li.classList.add('active'); }
+                    // Add click listener to the list item itself (excluding the button)
+                    li.addEventListener('click', (event) => {
+                        // Only switch if the click wasn't on the delete button
+                        if (event.target !== deleteBtn && !deleteBtn.contains(event.target)) {
+                             handleSidebarClick(conv.id);
+                        }
+                    });
+                    conversationList.appendChild(li);
+                });
+                console.log("Sidebar conversations loaded.");
+            } catch (error) { console.error("Failed to load sidebar conversations:", error); conversationList.innerHTML = '<li>Error loading chats</li>'; }
+        }
+
+        async function handleDeleteConversation(convId, listItemElement) {
+            if (!authToken) { console.warn("Cannot delete: Not authenticated."); return; }
+            if (!confirm(`Are you sure you want to delete the conversation "${listItemElement.querySelector('.conversation-item-title').textContent}"?`)) {
+                return;
+            }
+            console.log("Requesting deletion of conversation:", convId);
+            try {
+                const response = await fetchWithAuth(`${BACKEND_URL}/api/conversations/${convId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                    throw new Error(errorData.detail || `Failed to delete (${response.status})`);
+                }
+                console.log("Conversation deleted successfully:", convId);
+                // Remove from UI
+                listItemElement.remove();
+                addMessage("Conversation deleted.", 'system', false);
+
+                // If the deleted conversation was the active one, reset the view
+                if (convId === currentConversationId) {
+                    currentConversationId = null;
+                    localStorage.removeItem(CONVERSATION_ID_KEY);
+                    chatArea.innerHTML = '';
+                    addMessage("Select a conversation or start a new one.", 'system', false);
+                    if (ws) {
+                        ws.close(1000, "Current conversation deleted");
+                        ws = null;
+                    }
+                    setSendButtonState(true); // Enable input for new chat
+                }
+            } catch (error) {
+                console.error("Failed to delete conversation:", error);
+                addMessage(`Error deleting conversation: ${error.message}`, 'system', false);
+            }
+        }
+
+
+        async function handleSidebarClick(convId) {
+            if (convId === currentConversationId) return;
+            console.log("Switching to conversation:", convId);
+            currentConversationId = convId;
+            localStorage.setItem(CONVERSATION_ID_KEY, convId);
+            document.querySelectorAll('#conversation-list .conversation-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.convId === convId);
+            });
+            chatArea.innerHTML = ''; // Clear chat area immediately
+            if (ws) { ws.close(1000, "Switched conversation"); ws = null; } // Close old connection
+            const historyLoaded = await loadChatHistory(convId); // Load history
+            if (historyLoaded) { connectWebSocket(); } // Connect WebSocket ONLY if history loaded successfully
+             else { setSendButtonState(true); } // Ensure button is enabled even if history fails
+        }
+
+        async function loadChatHistory(convId) {
+            console.log("Loading history for conversation:", convId);
+            if (!authToken) { console.warn("Cannot load history: Not authenticated."); return false; }
+            chatArea.innerHTML = ''; // Clear again just in case
+            let loadingMsgElementId = addMessage("Loading history...", 'system', false);
+            setSendButtonState(false);
+            try {
+                const response = await fetchWithAuth(`${BACKEND_URL}/api/conversations/${convId}`);
+                const loadingEl = document.getElementById(loadingMsgElementId); if (loadingEl) loadingEl.remove();
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.messages && data.messages.length > 0) {
+                        data.messages.forEach(msg => {
+                            const role = msg.role === 'assistant' ? 'bot' : msg.role;
+                            // Pass metadata directly, finalizeBotMessage will handle sources later if needed
+                            // The msg.id is passed as the idToUseForNewElement to addMessage
+                            addMessage(msg.content, role, msg.message_metadata || false, msg.id);
+                        });
+                        addMessage("Chat history loaded.", 'system', false);
+                        scrollToBottom('instant');
+
+                        // Finalize content and sources for any bot messages loaded from history
+                        document.querySelectorAll('.message.bot-message').forEach(msgEl => {
+                           const msgId = msgEl.id; // This ID should match the msg.id from the backend
+                           const matchingMsgData = data.messages.find(m => m.id === msgId);
+
+                           // --- THIS IS THE CORRECTED PART ---
+                           if (matchingMsgData) {
+                               // Always call finalizeBotMessage to set the content.
+                               // It will internally handle whether to show sources based on metadata.
+                               finalizeBotMessage(
+                                   msgId,
+                                   matchingMsgData.content,
+                                   matchingMsgData.message_metadata // Pass whatever metadata exists
+                               );
+                           } else {
+                               // This case should ideally not happen if IDs are consistent
+                               console.warn(`loadChatHistory: Could not find matching message data for historical bot message with ID: ${msgId}`);
+                           }
+                           // --- END OF CORRECTION ---
+                        });
+                    } else { addMessage("No previous messages in this conversation.", 'system', false); }
+                    setSendButtonState(true); return true;
+                } else if (response.status === 404) {
+                    console.warn("Conversation ID not found (404):", convId);
+                    addMessage("Could not find this conversation. It might have been deleted elsewhere. Starting fresh.", 'system', false);
+                    localStorage.removeItem(CONVERSATION_ID_KEY);
+                    currentConversationId = null;
+                    await loadSidebarConversations(); // Refresh sidebar
+                    setSendButtonState(true); return false; // Indicate history load failed
+                } else {
+                     const errorData = await response.json().catch(() => ({ detail: "Failed to parse history error" }));
+                     throw new Error(errorData.detail || `Failed to load history (${response.status})`);
+                }
+            } catch (error) {
+                 console.error("Failed to load chat history:", error);
+                 const loadingEl = document.getElementById(loadingMsgElementId); if (loadingEl) loadingEl.remove();
+                 addMessage(`Error loading history: ${error.message}. You can start a new chat.`, 'system', false);
+                 setSendButtonState(true); return false; // Indicate history load failed
+            }
+        }
+
+        // async function loadChatHistory(convId) {
+        //     console.log("Loading history for conversation:", convId);
+        //     if (!authToken) { console.warn("Cannot load history: Not authenticated."); return false; }
+        //     chatArea.innerHTML = ''; // Clear again just in case
+        //     let loadingMsgElementId = addMessage("Loading history...", 'system', false);
+        //     setSendButtonState(false);
+        //     try {
+        //         const response = await fetchWithAuth(`${BACKEND_URL}/api/conversations/${convId}`);
+        //         const loadingEl = document.getElementById(loadingMsgElementId); if (loadingEl) loadingEl.remove();
+
+        //         if (response.ok) {
+        //             const data = await response.json();
+        //             if (data.messages && data.messages.length > 0) {
+        //                 data.messages.forEach(msg => {
+        //                     const role = msg.role === 'assistant' ? 'bot' : msg.role;
+        //                     // Pass metadata directly, finalizeBotMessage will handle sources later if needed
+        //                     addMessage(msg.content, role, msg.message_metadata || false, msg.id);
+        //                 });
+        //                 addMessage("Chat history loaded.", 'system', false);
+        //                 scrollToBottom('instant');
+        //                 // Finalize sources for any bot messages loaded from history
+        //                 document.querySelectorAll('.message.bot-message').forEach(msgEl => {
+        //                    const msgId = msgEl.id;
+        //                    const matchingMsgData = data.messages.find(m => m.id === msgId);
+        //                    if (matchingMsgData && matchingMsgData.message_metadata) {
+        //                        finalizeBotMessage(msgId, matchingMsgData.content, matchingMsgData.message_metadata);
+        //                    }
+        //                 });
+        //             } else { addMessage("No previous messages in this conversation.", 'system', false); }
+        //             setSendButtonState(true); return true;
+        //         } else if (response.status === 404) {
+        //             console.warn("Conversation ID not found (404):", convId);
+        //             addMessage("Could not find this conversation. It might have been deleted elsewhere. Starting fresh.", 'system', false);
+        //             localStorage.removeItem(CONVERSATION_ID_KEY);
+        //             currentConversationId = null;
+        //             await loadSidebarConversations(); // Refresh sidebar
+        //             setSendButtonState(true); return false; // Indicate history load failed
+        //         } else {
+        //              const errorData = await response.json().catch(() => ({ detail: "Failed to parse history error" }));
+        //              throw new Error(errorData.detail || `Failed to load history (${response.status})`);
+        //         }
+        //     } catch (error) {
+        //          console.error("Failed to load chat history:", error);
+        //          const loadingEl = document.getElementById(loadingMsgElementId); if (loadingEl) loadingEl.remove();
+        //          addMessage(`Error loading history: ${error.message}. You can start a new chat.`, 'system', false);
+        //          setSendButtonState(true); return false; // Indicate history load failed
+        //     }
+        // }
+
+        // --- User Actions ---
+        async function sendMessage() {
+            console.log("sendMessage CALLED!");
+
+            const questionText = questionInput.value.trim();
+            if (!questionText) {
+                console.log("sendMessage: No question text, exiting.");
+                return;
+            }
+            console.log("sendMessage: Question text found:", questionText);
+
+            const conversationReady = await ensureConversation();
+            console.log("sendMessage: ensureConversation returned:", conversationReady);
+
+            if (!conversationReady) {
+                addMessage("Could not establish a conversation with the server. Please try again.", 'system', false);
+                setSendButtonState(true);
+                console.log("sendMessage: conversationReady is false, exiting.");
+                return;
+            }
+            console.log("sendMessage: Proceeding to check WebSocket state.");
+
+            // 2. Check WebSocket state (ensureConversation should have connected it)
+            if (!ws || ws.readyState !== WebSocket.OPEN) { // <<<< PROBLEM COULD BE HERE
+                addMessage("Not connected to the chat server. Attempting to reconnect...", 'system', false);
+                console.warn("SendMessage: WebSocket not open. State:", ws ? ws.readyState : 'null'); // IMPORTANT LOG
+                // connectWebSocket(); // Maybe you don't want to auto-reconnect here, but rather show an error
+                                     // and let the existing auto-reconnect logic handle it if ws.onclose fired.
+                                     // For now, let's see the log.
+                return; // Exit if not connected
+            }
+            console.log("sendMessage: WebSocket is OPEN. Proceeding to send."); // <<<< THIS LOG IS KEY
+
+            // 3. Display user message and send
+            addMessage(questionText, 'user'); // Displays locally
+            questionInput.value = '';
+            setSendButtonState(false); // Disable while bot is "typing"
+
+            try {
+                const payload = { content: questionText }; // Language was removed
+                ws.send(JSON.stringify(payload));         // <<<< THE ACTUAL SEND OPERATION
+                console.log("Message SENT via WebSocket with payload:", JSON.stringify(payload)); // MODIFIED LOG
+            } catch (error) {
+                console.error("WebSocket send error:", error);
+                addMessage("Error sending message. Please check connection.", 'system', false);
+                setSendButtonState(true); // Re-enable on send error
+            }
+        }
+         
+        function startNewConversation() { /* See modification below */ }
+        function redirectToGoogle() { window.location.href = '/api/auth/login/google'; }
+        // loadLanguages removed
+
+        async function checkLoginStatus() {
+             console.log("Checking login status...");
+             authToken = localStorage.getItem(AUTH_TOKEN_KEY); // Read token from localStorage
+             if (!authToken) { console.log("No auth token found."); showAuthForm('login'); return false; }
+             console.log("Auth token found, validating...");
+             try {
+                 const response = await fetchWithAuth(`${BACKEND_URL}/api/auth/users/me`);
+                 if (!response.ok) { throw new Error(`Token validation failed (${response.status})`); }
+                 const userData = await response.json();
+                 console.log("Token validated for user:", userData.email);
+                 currentUserEmail = userData.email;
+
+                 // No language loading needed
+                 currentConversationId = localStorage.getItem(CONVERSATION_ID_KEY);
+                 await loadSidebarConversations(); // Load sidebar after confirming auth
+
+                 if (currentConversationId) {
+                     await loadChatHistory(currentConversationId); // Load history for current ID
+                 } else {
+                     chatArea.innerHTML = ''; // Clear chat area
+                     addMessage("Welcome! Select a chat or start a new one.", 'system', false);
+                 }
+                 showChatInterface(userData.email); // Show main UI
+
+                 if (currentConversationId) {
+                    ensureConversation(); // Connect WebSocket if conversation ID exists
+                 } else {
+                     console.log("No initial conversation ID, WebSocket connection deferred.");
+                     setSendButtonState(true); // Ensure send button is enabled
+                 }
+                 return true;
+             } catch (error) {
+                 console.error("Token validation or initial load failed:", error);
+                 if (!error.message.startsWith("Unauthorized")) { handleLogout(); }
+                 return false;
+             }
+        }
+
+        // --- WebSocket Logic ---
+        function connectWebSocket() {
+            if (!currentConversationId) { console.log("WS Connect Abort: No current conversation ID."); return; }
+            if (!authToken) { console.log("WS Connect Abort: No auth token available."); handleLogout(); return; }
+            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) { console.log("WS Connect: Already connected or connecting."); return; }
+
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            let backendHost = '';
+            try { const url = new URL(BACKEND_URL); backendHost = url.host; } catch (e) { console.error("Invalid BACKEND_URL:", BACKEND_URL, e); addMessage("Internal configuration error (Backend URL).", 'system', false); return; }
+            // Use the updated WebSocket path and pass token via query parameter
+            const wsUrl = `${wsProtocol}//${backendHost}/ws/chat/${currentConversationId}?token=${encodeURIComponent(authToken)}`;
+
+            console.log("Attempting WebSocket connection to:", wsUrl.replace(/token=.*$/, 'token=***'));
+            showConnectingMessage(); setSendButtonState(false);
+            if (ws) { ws = null; } // Ensure old instance is cleared
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => { console.log("WebSocket connected successfully."); removeConnectingMessage(); addMessage("Real-time connection established.", 'system', false); setSendButtonState(true); reconnectAttempt = 0; if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; } };
+            ws.onmessage = (event) => { try { const data = JSON.parse(event.data); handleWebSocketMessage(data); } catch (e) { console.error("WebSocket message parse error:", e, event.data); addMessage("Received an invalid message from the server.", 'system', false); } };
+            ws.onerror = (error) => { console.error("WebSocket Error:", error); removeConnectingMessage(); addMessage("WebSocket connection error occurred.", 'system', false); ws = null; /* Rely on onclose for reconnect */ };
+            ws.onclose = (event) => {
+                console.log(`WebSocket closed: Code=${event.code}, Reason='${event.reason}', WasClean=${event.wasClean}`);
+                removeConnectingMessage(); ws = null; setSendButtonState(true);
+                // Attempt reconnect only on unclean close, if logged in, and not code 1008 (policy violation)
+                if (!event.wasClean && event.code !== 1000 && event.code !== 1008 && authToken && currentConversationId) {
+                    addMessage(`Connection lost (Code: ${event.code}). Retrying...`, 'system', false);
+                    reconnectAttempt++; const delay = Math.min(WS_RECONNECT_TIMEOUT * Math.pow(2, reconnectAttempt - 1), 30000); // Exponential backoff capped at 30s
+                    console.log(`Scheduling reconnect attempt ${reconnectAttempt} in ${delay}ms`);
+                    if (reconnectTimer) clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(() => {
+                        if (!ws && authToken && currentConversationId) { console.log(`Executing reconnect attempt ${reconnectAttempt}`); connectWebSocket(); }
+                        else { console.log("Reconnect aborted (logged out or no conversation ID)."); if (reconnectTimer) clearTimeout(reconnectTimer); reconnectTimer = null; reconnectAttempt = 0; }
+                    }, delay);
+                } else {
+                     if (event.code === 1008) { addMessage(`Connection denied. Please try logging in again or starting a new chat.`, 'system', false); }
+                     else if (event.reason && event.code !== 1000) { addMessage(`Connection closed: ${escapeHtml(event.reason)}`, 'system', false); }
+                     else { /* Optional: addMessage("Connection closed.", 'system', false); */ }
+                     if (reconnectTimer) clearTimeout(reconnectTimer); reconnectTimer = null; reconnectAttempt = 0;
+                 }
+            };
+        }
+
+        function handleWebSocketMessage(data) {
+             switch (data.type) {
+                case "message_received": console.log("Backend confirmed receipt of message ID:", data.id); break;
+                case "stream": appendTokenToBotMessage(data.token, data.message_id, data.is_first); break;
+                case "complete": finalizeBotMessage(data.message_id, data.content, data.metadata); break;
+                case "error": addMessage(`Server Error: ${escapeHtml(data.message)}`, 'bot'); setSendButtonState(true); currentBotMessageElement = null; currentBotMessageId = null; break;
+                default: console.warn("Received unknown WebSocket message type:", data.type, data);
+            }
+        }
+        function finalizeBotMessage(messageId, fullText, metadata) {
+            console.log(`[DEBUG START finalizeBotMessage] messageId: ${messageId}, metadata:`, metadata);
+            const botMessageElement = document.getElementById(messageId);
+
+            if (botMessageElement) {
+                const contentSpan = botMessageElement.querySelector('.bot-message-content');
+                if (contentSpan) {
+                    // Update the content with the full final text
+                    // This is important if streaming might have missed tiny bits or for consistency
+                    contentSpan.innerHTML = escapeHtml(fullText).replace(/\n/g, '<br>');
+                } else {
+                    console.error(`[finalizeBotMessage] Could not find .bot-message-content span for ID: ${messageId}`);
+                }
+
+                // Handle sources
+                const sourcesPlaceholder = botMessageElement.querySelector('.sources-placeholder');
+                if (sourcesPlaceholder) {
+                    if (metadata && metadata.sources && metadata.sources.length > 0) {
+                        sourcesPlaceholder.innerHTML = renderSources(metadata.sources);
+                        sourcesPlaceholder.style.display = 'block'; // Make it visible
+                    } else {
+                        sourcesPlaceholder.innerHTML = ''; // Clear if no sources
+                        sourcesPlaceholder.style.display = 'none';
+                    }
+                } else {
+                    // If there was no placeholder (e.g. message loaded from history without one initially)
+                    // and we have sources, we might want to append a new sources div.
+                    // For simplicity, the current addMessage logic includes a placeholder if metadata is not false.
+                    console.debug(`[finalizeBotMessage] No .sources-placeholder found for ID: ${messageId}. Ensure addMessage created it if sources were expected.`);
+                }
+            } else {
+                console.warn(`[finalizeBotMessage] Could not find bot message element with ID: ${messageId}. Message might have been cleared or ID is incorrect.`);
+            }
+            scrollToBottom(); // Scroll after final content and sources are set
+            setSendButtonState(true); // Re-enable send button
+            currentBotMessageElement = null; // Reset global state for current streaming message
+            currentBotMessageId = null;
+            console.log(`[DEBUG END finalizeBotMessage] Processed messageId: ${messageId}`);
+        }
+
+
+         function appendTokenToBotMessage(token, messageId, isFirst) {
+    // --- ADDED DEBUG LOG ---
+            console.log(`[DEBUG START appendToken] Received token. messageId: ${messageId}, isFirst: ${isFirst}, currentGlobalBotMsgId: ${currentBotMessageId}`);
+
+            if (isFirst || !currentBotMessageId || currentBotMessageId !== messageId) {
+                // This block runs when it's the VERY FIRST part of a NEW bot message
+                currentBotMessageId = messageId; // Store the backend's ID for this new bot message globally
+
+                // --- ADDED DEBUG LOG ---
+                console.log(`[DEBUG appendToken] First token for new bot message. Backend messageId: ${messageId}. Will use this ID for the new HTML element.`);
+
+                // Call addMessage, PASSING the backend's messageId, so addMessage USES it for the new div's ID.
+                const newHtmlElementId = addMessage("", 'bot', true, messageId);
+
+                // --- ADDED DEBUG LOG ---
+                console.log(`[DEBUG appendToken] addMessage function created an HTML element with ID: '${newHtmlElementId}'.`);
+                console.log(`[DEBUG appendToken] Comparing: backend's messageId ('${messageId}') vs newHtmlElementId ('${newHtmlElementId}')`);
+
+                if (newHtmlElementId !== messageId) {
+                    console.error(`[CRITICAL ID MISMATCH in appendToken] Backend ID was ${messageId}, but addMessage used/created ${newHtmlElementId} for the HTML element!`);
+                }
+
+                currentBotMessageElement = document.getElementById(newHtmlElementId); // Try to get the new element
+
+                if (!currentBotMessageElement) {
+                    console.error(`[DEBUG appendToken] EPIC FAIL: Could not find newly created element with ID '${newHtmlElementId}' immediately after addMessage. This is bad.`);
+                    currentBotMessageId = null; // Reset global state if we failed
+                    return;
+                }
+
+                const contentSpan = currentBotMessageElement.querySelector('.bot-message-content');
+                if (contentSpan) {
+                    contentSpan.innerHTML = ''; // Clear any previous content (like 'Bot:')
+                } else {
+                    console.error("[DEBUG appendToken] Could not find .bot-message-content span in new element.");
+                    currentBotMessageElement = null; currentBotMessageId = null; // Reset
+                    return;
+                }
+            }
+
+            // This part runs for the first token (after the if block above) AND all subsequent tokens of the SAME bot message
+            if (currentBotMessageElement && currentBotMessageId === messageId) { // Ensure we are appending to the correct message
+                const contentSpan = currentBotMessageElement.querySelector('.bot-message-content');
+                if (contentSpan) {
+                    contentSpan.innerHTML += escapeHtml(token).replace(/\n/g, '<br>');
+                    scrollToBottom();
+                } else {
+                    console.error("[DEBUG appendToken] Cannot find content span in existing currentBotMessageElement to append token.");
+                }
+            } else if (currentBotMessageId !== messageId) {
+                console.warn(`[DEBUG appendToken] Received token for messageId '${messageId}', but currentGlobalBotMsgId is '${currentBotMessageId}'. This might be an old/late token or a new message starting without 'isFirst'.`);
+            } else {
+                console.error(`[DEBUG appendToken] currentBotMessageElement is null, cannot append token for messageId '${messageId}'.`);
+            }
+            // --- ADDED DEBUG LOG ---
+            console.log(`[DEBUG END appendToken] Finished processing token for messageId: ${messageId}`);
+        }
+
+
+        function startNewConversation() {
+            if (!authToken) { addMessage("Please login first.", 'system', false); return; }
+            console.log("Starting new conversation requested by user.");
+            if (ws) { ws.close(1000, "User started new conversation"); ws = null; }
+            if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+            currentConversationId = null; // Clear current ID
+            localStorage.removeItem(CONVERSATION_ID_KEY); // Remove from storage
+            chatArea.innerHTML = ''; // Clear chat display
+            addMessage("Started new chat. Ask anything!", 'system', false);
+            questionInput.focus();
+            setSendButtonState(true); // Enable send button
+            currentBotMessageElement = null; currentBotMessageId = null; // Reset bot message state
+            // Deactivate all sidebar items
+             document.querySelectorAll('#conversation-list .conversation-item').forEach(item => {
+                 item.classList.remove('active');
+             });
+            console.log("New chat state set. Ready for first message.");
+        }
+
+        // --- Conversation Management ---
+        async function ensureConversation() {
+             if (!authToken) { console.error("Cannot ensure conversation: No auth token."); return false; }
+             if (currentConversationId) {
+                 // Conversation ID exists, check WebSocket state
+                 if (!ws || (ws.readyState !== WebSocket.OPEN && ws.readyState !== WebSocket.CONNECTING)) {
+                      console.log("EnsureConversation: Existing ID, WS needs connect/reconnect.");
+                      connectWebSocket(); // Attempt to connect or reconnect
+                 }
+                 return true; // Assume okay or connection attempt started
+             } else {
+                 // No conversation ID, create a new one
+                 console.log("EnsureConversation: No conversation ID. Creating new...");
+                 let msgId = addMessage("Starting new conversation...", 'system', false);
+                 setSendButtonState(false); // Disable input while creating
+                 try {
+                     const response = await fetchWithAuth(`${BACKEND_URL}/api/conversations`, {
+                         method: 'POST',
+                         // Use a default title that backend will replace on first message
+                         body: JSON.stringify({ title: "New Web Chat Session" })
+                     });
+                     const msgEl = document.getElementById(msgId); if(msgEl) msgEl.remove(); // Remove "Starting..." message
+                     if (!response.ok) {
+                         const errData = await response.json().catch(() => ({ detail: "Failed to create conversation" }));
+                         throw new Error(errData.detail || `Failed (${response.status})`);
+                     }
+                     const convData = await response.json();
+                     currentConversationId = convData.id;
+                     localStorage.setItem(CONVERSATION_ID_KEY, currentConversationId);
+                     console.log("Created new conversation:", currentConversationId);
+                     await loadSidebarConversations(); // Refresh sidebar to show the new chat (marked active)
+                     connectWebSocket(); // Connect WebSocket for the new conversation
+                     setSendButtonState(true); // Re-enable input
+                     return true;
+                 } catch (error) {
+                     console.error("Failed to create conversation:", error);
+                     addMessage(`Error starting conversation: ${error.message}`, 'system', false);
+                     setSendButtonState(true); return false; // Failed to create
+                 }
+             }
+        }
+
+        // --- File Upload Removed ---
+        // async function uploadFile() { /* ... removed ... */ }
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("DOM Loaded. Initializing GenderWise India chat...");
+            await checkLoginStatus(); // Handles auth check, loading data, and showing UI
+        });
+
+    </script>
+</body>
+</html>
